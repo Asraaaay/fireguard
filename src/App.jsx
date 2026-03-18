@@ -10,7 +10,7 @@ import {
   Tooltip,
   Legend,
   Filler,
-} from "chart.js";   
+} from "chart.js";
 import { Line } from "react-chartjs-2";
 import { Sun, Moon, Download, Pause, Play, AlertTriangle, Flame, Thermometer, Droplets, Shield, Wifi, WifiOff, Cpu, Settings, Save } from "lucide-react";
 import { initializeApp } from "firebase/app";
@@ -76,7 +76,7 @@ export default function App() {
   const [tempThreshold, setTempThreshold] = useState(50.0); // Temporary threshold for editing
   const [isEditingThreshold, setIsEditingThreshold] = useState(false);
   const [thresholdLoading, setThresholdLoading] = useState(false);
-  
+
   const logsContainerRef = useRef(null);
   const shouldAutoScrollRef = useRef(true);
   const esp32TimeoutRef = useRef(null);
@@ -95,14 +95,14 @@ export default function App() {
   // Calculate threshold progress (how close temperature is to threshold)
   const calculateThresholdProgress = () => {
     if (temp === null || threshold === null) return 0;
-    
+
     // Calculate percentage from 30°C to threshold
     const minTemp = 30;
     const maxTemp = threshold;
-    
+
     if (temp <= minTemp) return 0;
     if (temp >= maxTemp) return 100;
-    
+
     return ((temp - minTemp) / (maxTemp - minTemp)) * 100;
   };
 
@@ -158,7 +158,7 @@ export default function App() {
     // Create Audio instances
     audioRef.current = new Audio("alarm.mp3");
     audioRef.current.loop = true;
-    
+
     highTempAudioRef.current = new Audio("alarm2.mp3");
     highTempAudioRef.current.loop = true;
 
@@ -168,17 +168,17 @@ export default function App() {
         // Create a silent audio context to unlock Web Audio API
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioContext = new AudioContext();
-        
+
         // Create a silent gain node
         const gainNode = audioContext.createGain();
         gainNode.gain.value = 0;
         gainNode.connect(audioContext.destination);
-        
+
         // Resume the audio context (this often unlocks audio)
         if (audioContext.state === 'suspended') {
           await audioContext.resume();
         }
-        
+
         console.log("Audio context unlocked");
       } catch (error) {
         console.warn("Audio context unlock failed:", error);
@@ -189,11 +189,11 @@ export default function App() {
         await audioRef.current.play();
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
-        
+
         await highTempAudioRef.current.play();
         highTempAudioRef.current.pause();
         highTempAudioRef.current.currentTime = 0;
-        
+
         console.log("Audio files preloaded and ready");
         userInteractedRef.current = true;
       } catch (error) {
@@ -296,7 +296,7 @@ export default function App() {
 
     c.on("message", (topic, payload) => {
       if (logsPaused) return;
-      
+
       const msg = payload.toString();
 
       if (topic === TOPIC_DATA) {
@@ -348,12 +348,12 @@ export default function App() {
       if (topic === TOPIC_HEARTBEAT) {
         // ESP32 is sending a heartbeat, so it's connected
         setEsp32Connected(true);
-        
+
         // Clear any existing timeout
         if (esp32TimeoutRef.current) {
           clearTimeout(esp32TimeoutRef.current);
         }
-        
+
         // Set a new timeout to mark ESP32 as disconnected if no further heartbeats
         esp32TimeoutRef.current = setTimeout(() => {
           setEsp32Connected(false);
@@ -407,7 +407,7 @@ export default function App() {
       }
       setClient(null);
       setConnected(false);
-      
+
       if (esp32TimeoutRef.current) {
         clearTimeout(esp32TimeoutRef.current);
         esp32TimeoutRef.current = null;
@@ -509,7 +509,7 @@ export default function App() {
       ts: Date.now(),
       type: "info",
     });
-    
+
     setIsEditingThreshold(false);
   }
 
@@ -524,10 +524,10 @@ export default function App() {
   }
 
   function downloadLogs() {
-    const csvContent = logs.map(log => 
+    const csvContent = logs.map(log =>
       `"${new Date(log.ts).toLocaleString()}","${log.type}","${log.text.replace(/"/g, '""')}"`
     ).join('\n');
-    
+
     const blob = new Blob([`"Time","Type","Message"\n${csvContent}`], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -554,10 +554,10 @@ export default function App() {
 
   const playFireAlarm = async () => {
     if (currentAlarm === 'fire') return;
-    
+
     stopAllAlarms();
     setCurrentAlarm('fire');
-    
+
     try {
       await audioRef.current.play();
       console.log("Fire alarm started");
@@ -573,10 +573,10 @@ export default function App() {
 
   const playHighTempAlarm = async () => {
     if (currentAlarm === 'high-temp') return;
-    
+
     stopAllAlarms();
     setCurrentAlarm('high-temp');
-    
+
     try {
       await highTempAudioRef.current.play();
       console.log("High temperature alarm started");
@@ -614,14 +614,14 @@ export default function App() {
 
   const handleDarkModeToggle = () => {
     if (isTransitioning) return;
-    
+
     setIsTransitioning(true);
     const newDarkMode = !darkMode;
-    
+
     // Change theme immediately for smooth transition
     setDarkMode(newDarkMode);
     localStorage.setItem("fg_dark", newDarkMode ? "1" : "0");
-    
+
     // Reset transition state after transition completes
     setTimeout(() => {
       setIsTransitioning(false);
@@ -631,36 +631,31 @@ export default function App() {
   // UI Components
   const SensorCard = ({ title, value, unit, danger, warning, icon }) => (
     <div
-      className={`p-6 rounded-2xl shadow-md ${cardBg} border ${
-        darkMode ? "border-gray-700" : "border-gray-200"
-      } flex flex-col transition-all duration-500 ease-in-out ${
-        danger ? "ring-2 ring-red-500" : warning ? "ring-2 ring-yellow-500" : ""
-      }`}
+      className={`p-6 rounded-2xl shadow-md ${cardBg} border ${darkMode ? "border-gray-700" : "border-gray-200"
+        } flex flex-col transition-all duration-500 ease-in-out ${danger ? "ring-2 ring-red-500" : warning ? "ring-2 ring-yellow-500" : ""
+        }`}
     >
       <div className="flex items-center justify-between mb-2">
-        <div className={`text-sm font-medium transition-colors duration-500 ${
-          darkMode ? "text-gray-400" : "text-gray-500"
-        }`}>
+        <div className={`text-sm font-medium transition-colors duration-500 ${darkMode ? "text-gray-400" : "text-gray-500"
+          }`}>
           {title}
         </div>
-        <div className={`p-2 rounded-full transition-colors duration-500 ${
-          danger ? "bg-red-100 text-red-600" : 
-          warning ? "bg-yellow-100 text-yellow-600" : 
-          "bg-blue-100 text-blue-600"
-        }`}>
+        <div className={`p-2 rounded-full transition-colors duration-500 ${danger ? "bg-red-100 text-red-600" :
+            warning ? "bg-yellow-100 text-yellow-600" :
+              "bg-blue-100 text-blue-600"
+          }`}>
           {icon}
         </div>
       </div>
       <div
-        className={`mt-2 text-3xl font-bold transition-colors duration-500 ${
-          danger 
-            ? "text-red-600" 
+        className={`mt-2 text-3xl font-bold transition-colors duration-500 ${danger
+            ? "text-red-600"
             : warning
               ? "text-yellow-600"
-              : darkMode 
-                ? "text-gray-100" 
+              : darkMode
+                ? "text-gray-100"
                 : "text-gray-800"
-        }`}
+          }`}
       >
         {value !== null && value !== undefined ? (
           <>
@@ -672,7 +667,7 @@ export default function App() {
       </div>
       {danger && (
         <div className="mt-2 text-sm font-medium text-red-600 flex items-center transition-colors duration-500">
-          <AlertTriangle size={16} className ="mr-1" /> Warning
+          <AlertTriangle size={16} className="mr-1" /> Warning
         </div>
       )}
       {warning && !danger && (
@@ -685,11 +680,10 @@ export default function App() {
 
   const StatusCard = ({ isSafe }) => (
     <div
-      className={`p-6 rounded-2xl shadow-md transition-all duration-500 ${
-        isSafe
+      className={`p-6 rounded-2xl shadow-md transition-all duration-500 ${isSafe
           ? "bg-gradient-to-r from-green-500 to-emerald-500"
           : "bg-gradient-to-r from-red-500 to-orange-500"
-      } text-white`}
+        } text-white`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="text-xl font-bold">System Status</div>
@@ -711,9 +705,8 @@ export default function App() {
   const ConnectionStatus = ({ connected, device, deviceName }) => (
     <div className="flex items-center">
       <div
-        className={`w-3 h-3 rounded-full mr-2 transition-colors duration-500 ${
-          connected ? "bg-green-500" : "bg-red-500"
-        }`}
+        className={`w-3 h-3 rounded-full mr-2 transition-colors duration-500 ${connected ? "bg-green-500" : "bg-red-500"
+          }`}
       ></div>
       <span className="text-sm transition-colors duration-500">
         {device ? `${deviceName}: ${connected ? "Connected" : "Disconnected"}` : connected ? "Connected" : "Disconnected"}
@@ -724,7 +717,7 @@ export default function App() {
   // MQTT Connection Banner component
   const MQTTConnectionBanner = ({ connected }) => {
     if (connected) return null;
-    
+
     return (
       <div className="w-full bg-red-500 text-white p-3 flex items-center justify-center transition-colors duration-500">
         <div className="flex items-center max-w-7xl w-full">
@@ -738,7 +731,7 @@ export default function App() {
   // ESP32 Connection Banner component
   const ESP32ConnectionBanner = ({ connected }) => {
     if (connected) return null;
-    
+
     return (
       <div className="w-full bg-orange-500 text-white p-3 flex items-center justify-center transition-colors duration-500">
         <div className="flex items-center max-w-7xl w-full">
@@ -753,7 +746,7 @@ export default function App() {
     <div className={`min-h-screen transition-all duration-500 ease-in-out ${themeBg}`}>
       <MQTTConnectionBanner connected={connected} />
       <ESP32ConnectionBanner connected={esp32Connected} />
-      
+
       <div className="p-4 md:p-6">
         <div className="max-w-7xl mx-auto">
           <header className="flex flex-col md:flex-row items-center justify-between mb-6 md:mb-8 p-4 rounded-2xl bg-white bg-opacity-5 gap-4 transition-all duration-500">
@@ -769,7 +762,7 @@ export default function App() {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2 md:gap-3">
               <button
                 ref={darkModeButtonRef}
@@ -785,11 +778,10 @@ export default function App() {
               </button>
               <button
                 onClick={toggleOverride}
-                className={`px-3 py-2 md:px-4 md:py-2 rounded-xl font-medium flex items-center text-sm md:text-base transition-all duration-500 ${
-                  overrideActive
+                className={`px-3 py-2 md:px-4 md:py-2 rounded-xl font-medium flex items-center text-sm md:text-base transition-all duration-500 ${overrideActive
                     ? "bg-red-100 text-red-700 border border-red-300"
                     : "bg-blue-100 text-blue-700 border border-blue-300"
-                }`}
+                  }`}
               >
                 <Shield size={18} className="mr-2" />
                 {overrideActive ? "Override ON" : "Override"}
@@ -824,9 +816,8 @@ export default function App() {
               </div>
 
               <div
-                className={`p-4 md:p-5 rounded-2xl border mb-6 transition-all duration-500 ease-in-out ${cardBg} ${
-                  darkMode ? "border-gray-700" : "border-gray-200"
-                }`}
+                className={`p-4 md:p-5 rounded-2xl border mb-6 transition-all duration-500 ease-in-out ${cardBg} ${darkMode ? "border-gray-700" : "border-gray-200"
+                  }`}
               >
                 <h3 className="font-bold text-lg mb-4 flex items-center transition-colors duration-500">
                   <Thermometer size={20} className="mr-2" />
@@ -838,13 +829,13 @@ export default function App() {
                       labels:
                         tempHistory.length > 0
                           ? tempHistory.map((item) =>
-                              new Date(item.ts).toLocaleTimeString()
-                            )
+                            new Date(item.ts).toLocaleTimeString()
+                          )
                           : humidityHistory.length > 0
-                          ? humidityHistory.map((item) =>
+                            ? humidityHistory.map((item) =>
                               new Date(item.ts).toLocaleTimeString()
                             )
-                          : [],
+                            : [],
                       datasets: [
                         {
                           label: "Temperature (°C)",
@@ -957,9 +948,8 @@ export default function App() {
               </div>
 
               <div
-                className={`p-4 md:p-5 rounded-2xl border transition-all duration-500 ease-in-out ${cardBg} ${
-                  darkMode ? "border-gray-700" : "border-gray-200"
-                }`}
+                className={`p-4 md:p-5 rounded-2xl border transition-all duration-500 ease-in-out ${cardBg} ${darkMode ? "border-gray-700" : "border-gray-200"
+                  }`}
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2">
                   <h3 className="font-bold text-lg flex items-center transition-colors duration-500">
@@ -974,11 +964,10 @@ export default function App() {
                           shouldAutoScrollRef.current = true;
                         }
                       }}
-                      className={`px-3 py-1 rounded-lg text-sm flex items-center transition-colors duration-500 ${
-                        logsPaused
+                      className={`px-3 py-1 rounded-lg text-sm flex items-center transition-colors duration-500 ${logsPaused
                           ? "bg-yellow-100 text-yellow-700"
                           : "bg-blue-100 text-blue-700"
-                      }`}
+                        }`}
                     >
                       {logsPaused ? (
                         <>
@@ -998,14 +987,13 @@ export default function App() {
                     </button>
                   </div>
                 </div>
-                <div 
+                <div
                   ref={logsContainerRef}
                   className="overflow-auto max-h-96 rounded-lg"
                 >
                   <table className="w-full text-sm">
-                    <thead className={`sticky top-0 transition-colors duration-500 ${
-                      darkMode ? "bg-gray-700" : "bg-gray-100"
-                    }`}>
+                    <thead className={`sticky top-0 transition-colors duration-500 ${darkMode ? "bg-gray-700" : "bg-gray-100"
+                      }`}>
                       <tr>
                         <th className="py-3 px-2 md:px-4 text-left transition-colors duration-500">Time</th>
                         <th className="py-3 px-2 md:px-4 text-left transition-colors duration-500">Type</th>
@@ -1026,33 +1014,30 @@ export default function App() {
                         logs.map((l) => (
                           <tr
                             key={l.id}
-                            className={`border-b transition-all duration-500 ${
-                              darkMode ? "border-gray-700" : "border-gray-100"
-                            } ${
-                              l.type === "danger"
+                            className={`border-b transition-all duration-500 ${darkMode ? "border-gray-700" : "border-gray-100"
+                              } ${l.type === "danger"
                                 ? "bg-red-50 text-red-800 dark:bg-red-900 dark:bg-opacity-20 dark:text-red-300"
                                 : l.type === "warning"
-                                ? "bg-yellow-50 text-yellow-800 dark:bg-yellow-900 dark:bg-opacity-20 dark:text-yellow-300"
-                                : l.type === "success"
-                                ? "bg-green-50 text-green-800 dark:bg-green-900 dark:bg-opacity-20 dark:text-green-300"
-                                : darkMode 
-                                  ? "hover:bg-gray-700" 
-                                  : "hover:bg-gray-50"
-                            }`}
+                                  ? "bg-yellow-50 text-yellow-800 dark:bg-yellow-900 dark:bg-opacity-20 dark:text-yellow-300"
+                                  : l.type === "success"
+                                    ? "bg-green-50 text-green-800 dark:bg-green-900 dark:bg-opacity-20 dark:text-green-300"
+                                    : darkMode
+                                      ? "hover:bg-gray-700"
+                                      : "hover:bg-gray-50"
+                              }`}
                           >
                             <td className="py-3 px-2 md:px-4 w-32 md:w-40 text-xs md:text-sm transition-colors duration-500">
                               {new Date(l.ts).toLocaleTimeString()}
                             </td>
                             <td className="py-3 px-2 md:px-4 w-20 md:w-24">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors duration-500 ${
-                                l.type === "danger"
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors duration-500 ${l.type === "danger"
                                   ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
                                   : l.type === "warning"
-                                  ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-                                  : l.type === "success"
-                                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                                  : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                              }`}>
+                                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+                                    : l.type === "success"
+                                      ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                                      : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                                }`}>
                                 {l.type?.toUpperCase()}
                               </span>
                             </td>
@@ -1075,9 +1060,8 @@ export default function App() {
 
             <aside className="space-y-4 md:space-y-6">
               <div
-                className={`p-4 md:p-5 rounded-2xl border transition-all duration-500 ease-in-out ${cardBg} ${
-                  darkMode ? "border-gray-700" : "border-gray-200"
-                }`}
+                className={`p-4 md:p-5 rounded-2xl border transition-all duration-500 ease-in-out ${cardBg} ${darkMode ? "border-gray-700" : "border-gray-200"
+                  }`}
               >
                 <h3 className="font-bold text-lg mb-4 flex items-center transition-colors duration-500">
                   <Shield size={20} className="mr-2" />
@@ -1087,20 +1071,19 @@ export default function App() {
                   <div className="flex items-center justify-between">
                     <span className="font-medium transition-colors duration-500">Override System</span>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        className="sr-only peer" 
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
                         checked={overrideActive}
                         onChange={toggleOverride}
                       />
-                      <div className={`w-11 h-6 rounded-full peer transition-colors duration-500 ${
-                        overrideActive 
-                          ? "bg-red-500" 
+                      <div className={`w-11 h-6 rounded-full peer transition-colors duration-500 ${overrideActive
+                          ? "bg-red-500"
                           : "bg-gray-200 dark:bg-gray-700"
-                      } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}></div>
+                        } peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all`}></div>
                     </label>
                   </div>
-                  
+
                   {/* Threshold Control Section */}
                   <div className="pt-4 border-t border-gray-200 dark:border-gray-700 transition-colors duration-500">
                     <div className="flex items-center justify-between mb-3">
@@ -1113,7 +1096,7 @@ export default function App() {
                         <Settings size={16} />
                       </button>
                     </div>
-                    
+
                     {isEditingThreshold ? (
                       <div className="space-y-3">
                         <div className="flex items-center space-x-2">
@@ -1161,22 +1144,20 @@ export default function App() {
                     ) : (
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className={`text-sm transition-colors duration-500 ${
-                            darkMode ? "text-gray-400" : "text-gray-500"
-                          }`}>
+                          <span className={`text-sm transition-colors duration-500 ${darkMode ? "text-gray-400" : "text-gray-500"
+                            }`}>
                             Current Threshold:
                           </span>
-                          <span className={`font-bold text-lg transition-colors duration-500 ${
-                            temp !== null && temp > threshold 
-                              ? "text-red-600" 
+                          <span className={`font-bold text-lg transition-colors duration-500 ${temp !== null && temp > threshold
+                              ? "text-red-600"
                               : temp !== null && temp > (threshold - 5)
                                 ? "text-yellow-600"
                                 : "text-green-600"
-                          }`}>
+                            }`}>
                             {threshold.toFixed(1)}°C
                           </span>
                         </div>
-                        
+
                         {/* Dynamic Threshold Progress Bar */}
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
@@ -1188,7 +1169,7 @@ export default function App() {
                             </span>
                           </div>
                           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 transition-colors duration-500">
-                            <div 
+                            <div
                               className={`h-3 rounded-full transition-all duration-500 ${progressColor}`}
                               style={{ width: `${Math.min(progress, 100)}%` }}
                             ></div>
@@ -1204,13 +1185,12 @@ export default function App() {
                           <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-700 rounded-lg transition-colors duration-500">
                             <div className="flex justify-between items-center text-sm">
                               <span className="transition-colors duration-500">Current Temp:</span>
-                              <span className={`font-bold transition-colors duration-500 ${
-                                temp > threshold 
-                                  ? "text-red-600" 
+                              <span className={`font-bold transition-colors duration-500 ${temp > threshold
+                                  ? "text-red-600"
                                   : temp > (threshold - 5)
                                     ? "text-yellow-600"
                                     : "text-green-600"
-                              }`}>
+                                }`}>
                                 {temp.toFixed(1)}°C
                               </span>
                             </div>
@@ -1225,30 +1205,27 @@ export default function App() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="pt-4 border-t border-gray-200 dark:border-gray-700 transition-colors duration-500">
                     <h4 className="font-medium mb-2 transition-colors duration-500">Current Readings</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className={`text-sm transition-colors duration-500 ${
-                          darkMode ? "text-gray-400" : "text-gray-500"
-                        }`}>
+                        <span className={`text-sm transition-colors duration-500 ${darkMode ? "text-gray-400" : "text-gray-500"
+                          }`}>
                           Temperature:
                         </span>
-                        <span className={`font-medium transition-colors duration-500 ${
-                          temp !== null && temp > threshold 
-                            ? "text-red-600" 
-                            : temp !== null && temp > (threshold - 5) 
-                              ? "text-yellow-600" 
+                        <span className={`font-medium transition-colors duration-500 ${temp !== null && temp > threshold
+                            ? "text-red-600"
+                            : temp !== null && temp > (threshold - 5)
+                              ? "text-yellow-600"
                               : ""
-                        }`}>
+                          }`}>
                           {temp !== null ? `${temp.toFixed(1)} °C` : "—"}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className={`text-sm transition-colors duration-500 ${
-                          darkMode ? "text-gray-400" : "text-gray-500"
-                        }`}>
+                        <span className={`text-sm transition-colors duration-500 ${darkMode ? "text-gray-400" : "text-gray-500"
+                          }`}>
                           Humidity:
                         </span>
                         <span className="font-medium transition-colors duration-500">
@@ -1256,33 +1233,29 @@ export default function App() {
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className={`text-sm transition-colors duration-500 ${
-                          darkMode ? "text-gray-400" : "text-gray-500"
-                        }`}>
+                        <span className={`text-sm transition-colors duration-500 ${darkMode ? "text-gray-400" : "text-gray-500"
+                          }`}>
                           Fire Status:
                         </span>
-                        <span className={`font-medium transition-colors duration-500 ${
-                          fireActive ? "text-red-600" : "text-green-600"
-                        }`}>
+                        <span className={`font-medium transition-colors duration-500 ${fireActive ? "text-red-600" : "text-green-600"
+                          }`}>
                           {fireActive ? "DETECTED" : "Normal"}
                         </span>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="pt-4 border-t border-gray-200 dark:border-gray-700 transition-colors duration-500">
                     <h4 className="font-medium mb-2 transition-colors duration-500">Connection Status</h4>
                     <div className="space-y-2">
                       <div className="flex items-center">
-                        <div className={`w-3 h-3 rounded-full mr-2 transition-colors duration-500 ${
-                          connected ? "bg-green-500 animate-pulse" : "bg-red-500"
-                        }`}></div>
+                        <div className={`w-3 h-3 rounded-full mr-2 transition-colors duration-500 ${connected ? "bg-green-500 animate-pulse" : "bg-red-500"
+                          }`}></div>
                         <span className="transition-colors duration-500">MQTT: {connected ? "Connected" : "Disconnected"}</span>
                       </div>
                       <div className="flex items-center">
-                        <div className={`w-3 h-3 rounded-full mr-2 transition-colors duration-500 ${
-                          esp32Connected ? "bg-green-500 animate-pulse" : "bg-red-500"
-                        }`}></div>
+                        <div className={`w-3 h-3 rounded-full mr-2 transition-colors duration-500 ${esp32Connected ? "bg-green-500 animate-pulse" : "bg-red-500"
+                          }`}></div>
                         <span className="transition-colors duration-500">ESP32: {esp32Connected ? "Connected" : "Disconnected"}</span>
                       </div>
                     </div>
@@ -1291,34 +1264,30 @@ export default function App() {
               </div>
 
               <div
-                className={`p-4 md:p-5 rounded-2xl border transition-all duration-500 ease-in-out ${cardBg} ${
-                  darkMode ? "border-gray-700" : "border-gray-200"
-                }`}
+                className={`p-4 md:p-5 rounded-2xl border transition-all duration-500 ease-in-out ${cardBg} ${darkMode ? "border-gray-700" : "border-gray-200"
+                  }`}
               >
                 <h3 className="font-bold text-lg mb-4 transition-colors duration-500">System Information</h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <span className={`transition-colors duration-500 ${
-                      darkMode ? "text-gray-400" : "text-gray-500"
-                    }`}>
+                    <span className={`transition-colors duration-500 ${darkMode ? "text-gray-400" : "text-gray-500"
+                      }`}>
                       Last Update:
                     </span>
                     <span className="transition-colors duration-500">
-                      {tempHistory.length ? new Date(tempHistory[tempHistory.length-1].ts).toLocaleTimeString() : "—"}
+                      {tempHistory.length ? new Date(tempHistory[tempHistory.length - 1].ts).toLocaleTimeString() : "—"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className={`transition-colors duration-500 ${
-                      darkMode ? "text-gray-400" : "text-gray-500"
-                    }`}>
+                    <span className={`transition-colors duration-500 ${darkMode ? "text-gray-400" : "text-gray-500"
+                      }`}>
                       Fire Threshold:
                     </span>
                     <span className="transition-colors duration-500">{threshold.toFixed(1)}°C</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className={`transition-colors duration-500 ${
-                      darkMode ? "text-gray-400" : "text-gray-500"
-                    }`}>
+                    <span className={`transition-colors duration-500 ${darkMode ? "text-gray-400" : "text-gray-500"
+                      }`}>
                       Threshold Progress:
                     </span>
                     <span className={`font-medium transition-colors duration-500 ${progressTextColor}`}>
@@ -1326,39 +1295,34 @@ export default function App() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className={`transition-colors duration-500 ${
-                      darkMode ? "text-gray-400" : "text-gray-500"
-                    }`}>
+                    <span className={`transition-colors duration-500 ${darkMode ? "text-gray-400" : "text-gray-500"
+                      }`}>
                       Log Count:
                     </span>
                     <span className="transition-colors duration-500">{logs.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className={`transition-colors duration-500 ${
-                      darkMode ? "text-gray-400" : "text-gray-500"
-                    }`}>
+                    <span className={`transition-colors duration-500 ${darkMode ? "text-gray-400" : "text-gray-500"
+                      }`}>
                       Data Points:
                     </span>
                     <span className="transition-colors duration-500">{tempHistory.length + humidityHistory.length}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className={`transition-colors duration-500 ${
-                      darkMode ? "text-gray-400" : "text-gray-500"
-                    }`}>
+                    <span className={`transition-colors duration-500 ${darkMode ? "text-gray-400" : "text-gray-500"
+                      }`}>
                       UI Theme:
                     </span>
                     <span className="transition-colors duration-500">{darkMode ? "Dark" : "Light"}</span>
                   </div>
                   {currentAlarm && (
                     <div className="flex justify-between">
-                      <span className={`transition-colors duration-500 ${
-                        darkMode ? "text-gray-400" : "text-gray-500"
-                      }`}>
+                      <span className={`transition-colors duration-500 ${darkMode ? "text-gray-400" : "text-gray-500"
+                        }`}>
                         Active Alarm:
                       </span>
-                      <span className={`font-medium transition-colors duration-500 ${
-                        currentAlarm === 'fire' ? "text-red-600" : "text-orange-600"
-                      }`}>
+                      <span className={`font-medium transition-colors duration-500 ${currentAlarm === 'fire' ? "text-red-600" : "text-orange-600"
+                        }`}>
                         {currentAlarm === 'fire' ? 'Fire Alert' : 'High Temp'}
                       </span>
                     </div>
@@ -1375,9 +1339,8 @@ export default function App() {
   const LoginPage = (
     <div className={`min-h-screen flex items-center justify-center p-4 md:p-6 transition-all duration-500 ease-in-out ${themeBg}`}>
       <div
-        className={`w-full max-w-md p-6 md:p-8 rounded-2xl shadow-lg border transition-all duration-500 ease-in-out ${cardBg} ${
-          darkMode ? "border-gray-700" : "border-gray-200"
-        }`}
+        className={`w-full max-w-md p-6 md:p-8 rounded-2xl shadow-lg border transition-all duration-500 ease-in-out ${cardBg} ${darkMode ? "border-gray-700" : "border-gray-200"
+          }`}
       >
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center p-3 bg-red-100 text-red-600 rounded-full mb-4 transition-colors duration-500">
@@ -1388,13 +1351,13 @@ export default function App() {
             Enter your credentials to access the dashboard
           </p>
         </div>
-        
+
         {loginError && (
           <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm transition-colors duration-500">
             {loginError}
           </div>
         )}
-        
+
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-500">
